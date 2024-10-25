@@ -1,10 +1,14 @@
 ﻿using Entities;
 using Logic;
+using Logic.Builders;
+using SearchInterface;
+using System;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -20,28 +24,51 @@ namespace MusicCatalogLR2
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Catalog catalog;
+        private Catalog _catalog;
 
         public MainWindow()
         {
             InitializeComponent();
-            catalog = new Catalog();  // Инициализация каталога
+            InitializeCatalog();
         }
 
-        private void btnSearchArtist_Click(object sender, RoutedEventArgs e)
+        private void InitializeCatalog()
         {
-            string singerName = txtArtistSearch.Text;  // Получаем текст из TextBox
-            var singers = catalog.Search(singerName, new SingerSearchStrategy());  // Выполняем поиск
-            if (singers.Count == 0)
+            // Инициализация каталога и добавление тестовых данных
+            _catalog = new Catalog();
+
+            Genre rock = new Genre("Rock");
+            Genre pop = new Genre("Pop");
+
+            var artistBuilder = new SingerBuilder("Artist1", rock);
+            var albumBuilder = new AlbumBuilder("Album1", new List<Singer>() { artistBuilder.Build() })
+                .AddSong(new Entities.Track("Song1", rock, new List<Singer>() { artistBuilder.Build() }))
+                .AddSong(new Entities.Track("Song2", rock, new List<Singer>() { artistBuilder.Build() }));
+            var artist = artistBuilder.AddAlbum(albumBuilder.Build()).Build();
+
+            _catalog.Singers.Add(artist);
+        }
+
+        private void OnSearchClick(object sender, RoutedEventArgs e)
+        {
+            string query = SearchBox.Text;
+            if (string.IsNullOrWhiteSpace(query)) return;
+
+            ISearchStrategy strategy = GetSearchStrategy();
+            if (strategy == null) return;
+
+            var results = _catalog.Search(query, strategy);
+            ResultsList.ItemsSource = results;
+        }
+
+        private ISearchStrategy GetSearchStrategy()
+        {
+            switch (SearchTypeSelector.SelectedIndex)
             {
-                txtResult.Text = $"Ничего не найдено";
-            }
-            else
-            {
-                foreach (Singer singer in singers)
-                {
-                    txtResult.Text = $"Найден артист: {singer.Name}";  // Выводим результат в TextBlock
-                }
+                case 0: return new SingerSearchStrategy();
+                case 1: return new AlbumSearchStrategy();
+                case 2: return new TrackSearchStrategy();
+                default: return null;
             }
         }
     }
