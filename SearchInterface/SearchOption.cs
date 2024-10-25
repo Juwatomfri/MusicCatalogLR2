@@ -5,25 +5,34 @@ namespace SearchInterface
     public class SearchOption
     {
         public string Name { get; set; }
-        public object Value { get; set; }
+        public ISearchStrategy Value { get; set; }
 
-        public SearchOption(string whatToSearch)
+        public SearchOption(SearchType whatToSearch)
         {
             switch (whatToSearch)
             {
-                case "SingerSearch":
+                case SearchType.SingerSearch:
                     Name = "Поиск по артистам";
                     Value = new SingerSearchStrategy();
                     break;
-                case "AlbumSearch":
+                case SearchType.AlbumSearch:
                     Name = "Поиск по альбомам";
                     Value = new AlbumSearchStrategy();
                     break;
-                case "TrackSearch":
+                case SearchType.TrackSearch:
                     Name = "Поиск по трекам";
                     Value = new TrackSearchStrategy();
                     break;
             }
         }
+
+        public override string ToString() => Name;
     }
+}
+
+public enum SearchType
+{
+    SingerSearch, 
+    AlbumSearch, 
+    TrackSearch
 }
