@@ -11,12 +11,16 @@ namespace Logic.Builders
     {
         private readonly Album _album;
 
-        public AlbumBuilder(string title, List<Singer> singers)
+        public AlbumBuilder(string name, Singer singer)
         {
-            _album = new Album(title, singers);
+            _album = new Album()
+            {
+                Name = name,
+                Singer = singer,
+            };
         }
 
-        public AlbumBuilder AddSong(Track track)
+        public AlbumBuilder AddTrack(Track track)
         {
             _album.Tracks.Add(track);
             return this;

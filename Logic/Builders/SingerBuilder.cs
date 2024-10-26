@@ -13,7 +13,11 @@ namespace Logic.Builders
 
         public SingerBuilder(string name, Genre genre)
         {
-            _singer = new Singer(name, genre);
+            _singer = new Singer()
+            {
+                Name = name,
+                Genre = genre,
+            };
         }
 
         public SingerBuilder AddTrack(Track track)
