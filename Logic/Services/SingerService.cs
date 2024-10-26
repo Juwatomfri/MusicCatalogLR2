@@ -2,6 +2,7 @@
 using Logic.Builders;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -34,7 +35,7 @@ namespace Logic.Services
 
         public List<Singer> GetASingerByName(string name)
         {
-            return _appDbContext.Singers.Where(a => a.Name.ToLower().Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе");
+            return _appDbContext.Singers.Where(a => a.Name.ToLower().Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким именем нет в базе");
         }
 
         public List<object> Search(Catalog catalog, string query)

@@ -23,7 +23,7 @@ namespace Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=MusicCatalog.db");
+            optionsBuilder.UseSqlite("Data Source=MusicCatalog.db, Charset=UTF-8");
         }
     }
 }
