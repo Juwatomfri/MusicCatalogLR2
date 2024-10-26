@@ -43,6 +43,8 @@ namespace MusicCatalogLR2
             }
         }
 
+        private void AddTestData(Catalog catalog) {
+
         private void AddTestData(Catalog catalog)
         {
             // Add genres
