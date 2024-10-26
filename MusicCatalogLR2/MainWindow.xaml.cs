@@ -1,96 +1,131 @@
 ﻿using Entities;
 using Logic;
-using Logic.Builders;
-using SearchInterface;
 using System;
-using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MusicCatalogLR2
 {
-
     public partial class MainWindow : Window
     {
-        private Catalog _catalog;
+        private readonly Catalog _catalog;
 
         public MainWindow()
         {
             InitializeComponent();
-            InitializeCatalog();
+            _catalog = InitializeCatalog();
         }
 
-        private void InitializeCatalog()
+        private Catalog InitializeCatalog()
         {
-            // Инициализация каталога и добавление тестовых данных
-            _catalog = new Catalog();
+            var connectionString = "Data Source=musiccatalog.db";
+            var catalog = new Catalog(connectionString);
+            AddTestData(catalog);
+            return catalog;
+        }
 
-            Genre rock = new Genre("Rock");
-            Genre pop = new Genre("Pop");
+        private void AddTestData(Catalog catalog)
+        {
+            // Add genres
+            var genre = new Genre("Rock");
+            catalog.AddGenre(genre);
 
-            SingerBuilder singerBuilder = new SingerBuilder("Artist1", rock);
-            AlbumBuilder albumBuilder = new AlbumBuilder("Album1", new List<Singer>() { singerBuilder.Build() });
-            Singer singer = singerBuilder.AddAlbum(albumBuilder.Build()).Build();
-            
-            _catalog.Singers.Add(singer);
+            // Add artists
+            var artist1 = new Singer("Queen", genre);
+            var artist2 = new Singer("Freddie Mercury", genre);
+            catalog.AddSinger(artist1);
+            catalog.AddSinger(artist2);
 
-            SingerBuilder singerBuilder2 = new SingerBuilder("Artist2", rock);
-            AlbumBuilder albumBuilder2 = new AlbumBuilder("Album2", new List<Singer>() { singerBuilder2.Build() });
-            Singer singer2 = singerBuilder2.AddAlbum(albumBuilder.Build()).Build();
+            // Add album with artist
+            var album = new Album("A Night at the Opera", new List<Singer> { artist1 });
+            catalog.AddAlbum(album);
 
-            _catalog.Singers.Add(singer2);
+            // Add track with multiple artists
+            var track = new Track("Bohemian Rhapsody", genre, album, new List<Singer> { artist1, artist2 });
+            catalog.AddTrack(track, album);
+
+            // Log tracks to the console
+            LogTracks(catalog.GetTracks());
+        }
+
+        private void LogTracks(IEnumerable<Track> tracks)
+        {
+            foreach (var track in tracks)
+            {
+                Console.WriteLine($"Track: {track.Name}, Artists: {string.Join(", ", track.Singers.Select(s => s.Name))}");
+            }
         }
 
         private void OnSearchClick(object sender, RoutedEventArgs e)
         {
-            ResultsList.Items.Clear();
+            ResultsList.Items.Clear(); // Очищаем предыдущие результаты
             string query = SearchBox.Text;
+
             if (string.IsNullOrWhiteSpace(query)) return;
 
-            ISearchStrategy strategy = GetSearchStrategy();
-            if (strategy == null) return;
+            var results = new List<string>();
 
-            var results = _catalog.Search(query, strategy);
-            if (results.Count == 0) 
+            string Type = SearchTypeSelector.Text;
+
+            if (Type == "Артисты")
             {
-                ResultsList.Items.Add("По данному запросу ничего не найдено");
-            } else
+                // Поиск исполнителей
+                var singers = _catalog.SearchSingers(query)
+                    .Where(s => s.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .Distinct() // Убираем дубликаты
+                    .ToList();
+
+                results.AddRange(singers.Select(s => $"Исполнитель: {s.Name}"));
+            }
+            else if (Type == "Альбомы")
             {
-                foreach (dynamic result in results)
+                // Поиск альбомов
+                var albums = _catalog.GetTracks()
+                    .Select(t => t.Album) // Получаем альбомы из треков
+                    .Where(a => a.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .Distinct() // Убираем дубликаты
+                    .ToList();
+
+                results.AddRange(albums.Select(a => $"Альбом: {a.Name}"));
+            }
+            else if (Type == "Песни")
+            {
+                // Поиск треков
+                var tracks = _catalog.GetTracks()
+                    .Where(t => t.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .Distinct() // Убираем дубликаты
+                    .ToList();
+
+                foreach (var track in tracks)
                 {
-                    try
+                    var singers = string.Join(", ", track.Singers.Select(s => s.Name));
+                    if (string.IsNullOrWhiteSpace(singers))
                     {
-                        ResultsList.Items.Add(result.Name);
+                        results.Add($"Песня: {track.Name}, Исполнитель: Неизвестен");
                     }
-                    catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                    else
                     {
-                        // Такого не может быть, но иначе C# выдаёт ошибку
+                        results.Add($"Песня: {track.Name}, Исполнитель: {singers}");
                     }
                 }
             }
-            
-        }
 
-        private ISearchStrategy GetSearchStrategy()
-        {
-            switch (SearchTypeSelector.SelectedIndex)
+            // Проверяем наличие результатов
+            if (!results.Any())
             {
-                case 0: return new SingerSearchStrategy();
-                case 1: return new AlbumSearchStrategy();
-                case 2: return new TrackSearchStrategy();
-                default: return null;
+                ResultsList.Items.Add("По данному запросу ничего не найдено.");
+            }
+            else
+            {
+                foreach (var result in results.Distinct()) // Убираем дубликаты при выводе
+                {
+                    ResultsList.Items.Add(result);
+                }
             }
         }
+
+
+
     }
 }
