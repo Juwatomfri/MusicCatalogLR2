@@ -3,6 +3,7 @@ using Logic;
 using Logic.Builders;
 using SearchInterface;
 using System;
+using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
@@ -19,9 +20,7 @@ using System.Windows.Shapes;
 
 namespace MusicCatalogLR2
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+
     public partial class MainWindow : Window
     {
         private Catalog _catalog;
@@ -40,17 +39,22 @@ namespace MusicCatalogLR2
             Genre rock = new Genre("Rock");
             Genre pop = new Genre("Pop");
 
-            var artistBuilder = new SingerBuilder("Artist1", rock);
-            var albumBuilder = new AlbumBuilder("Album1", new List<Singer>() { artistBuilder.Build() })
-                .AddSong(new Entities.Track("Song1", rock, new List<Singer>() { artistBuilder.Build() }))
-                .AddSong(new Entities.Track("Song2", rock, new List<Singer>() { artistBuilder.Build() }));
-            var artist = artistBuilder.AddAlbum(albumBuilder.Build()).Build();
+            SingerBuilder singerBuilder = new SingerBuilder("Artist1", rock);
+            AlbumBuilder albumBuilder = new AlbumBuilder("Album1", new List<Singer>() { singerBuilder.Build() });
+            Singer singer = singerBuilder.AddAlbum(albumBuilder.Build()).Build();
+            
+            _catalog.Singers.Add(singer);
 
-            _catalog.Singers.Add(artist);
+            SingerBuilder singerBuilder2 = new SingerBuilder("Artist2", rock);
+            AlbumBuilder albumBuilder2 = new AlbumBuilder("Album2", new List<Singer>() { singerBuilder2.Build() });
+            Singer singer2 = singerBuilder2.AddAlbum(albumBuilder.Build()).Build();
+
+            _catalog.Singers.Add(singer2);
         }
 
         private void OnSearchClick(object sender, RoutedEventArgs e)
         {
+            ResultsList.Items.Clear();
             string query = SearchBox.Text;
             if (string.IsNullOrWhiteSpace(query)) return;
 
@@ -58,7 +62,24 @@ namespace MusicCatalogLR2
             if (strategy == null) return;
 
             var results = _catalog.Search(query, strategy);
-            ResultsList.ItemsSource = results;
+            if (results.Count == 0) 
+            {
+                ResultsList.Items.Add("По данному запросу ничего не найдено");
+            } else
+            {
+                foreach (dynamic result in results)
+                {
+                    try
+                    {
+                        ResultsList.Items.Add(result.Name);
+                    }
+                    catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                    {
+                        // Такого не может быть, но иначе C# выдаёт ошибку
+                    }
+                }
+            }
+            
         }
 
         private ISearchStrategy GetSearchStrategy()
