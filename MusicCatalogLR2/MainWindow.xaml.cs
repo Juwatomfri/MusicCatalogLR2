@@ -22,14 +22,34 @@ namespace MusicCatalogLR2
             var connectionString = "Data Source=musiccatalog.db";
             var catalog = new Catalog(connectionString);
             AddTestData(catalog);
+            LoadGenres(catalog);
             return catalog;
+        }
+
+        private void LoadGenres(Catalog catalog)
+        {
+            var genres = catalog.GetGenres(); // Получаем жанры из базы данных
+            ChoseAGenre.Items.Clear(); // Очищаем существующие элементы
+
+            foreach (var genre in genres)
+            {
+                ChoseAGenre.Items.Add(genre.Name); // Добавляем каждый жанр в ComboBox
+            }
+
+            // Устанавливаем первый элемент выбранным, если жанры есть
+            if (ChoseAGenre.Items.Count > 0)
+            {
+                ChoseAGenre.SelectedIndex = 0; // Устанавливаем первый элемент выбранным
+            }
         }
 
         private void AddTestData(Catalog catalog)
         {
             // Add genres
             var genre = new Genre("Rock");
+            var genre2 = new Genre("Pop");
             catalog.AddGenre(genre);
+            catalog.AddGenre(genre2);
 
             // Add artists
             var artist1 = new Singer("Queen", genre);

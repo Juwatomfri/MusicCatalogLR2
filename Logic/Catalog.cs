@@ -158,6 +158,32 @@ namespace Logic
             }
         }
 
+        public List<Genre> GetGenres()
+        {
+            var genres = new List<Genre>();
+
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SqliteCommand("SELECT DISTINCT Name FROM Genres", connection)) // Используем DISTINCT
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            if (!reader.IsDBNull(0)) // Проверяем на NULL
+                            {
+                                var genre = new Genre(reader.GetString(0)); // Создаем объект Genre с полученным именем
+                                genres.Add(genre); // Добавляем жанр в список
+                            }
+                        }
+                    }
+                }
+            }
+
+            return genres; // Возвращаем список жанров
+        }
+
         public List<Singer> SearchSingers(string name)
         {
             var singers = new List<Singer>();
