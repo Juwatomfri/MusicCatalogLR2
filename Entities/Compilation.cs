@@ -10,9 +10,9 @@
             Name = name;
         }
 
-        public void AddTrack(Track track)
-        {
-            Tracks.Add(track);
-        }
+        //public void AddTrack(Track track)
+        //{
+        //    Tracks.Add(track);
+        //}
     }
 }

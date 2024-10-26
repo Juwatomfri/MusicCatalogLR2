@@ -13,13 +13,13 @@
             Genre = genre;
         }
 
-        public void AddAlbum(Album album)
-        {
-            Albums.Add(album);
-        }
-        public void AddTrack(Track track)
-        {
-            Tracks.Add(track);
-        }
+        //public void AddAlbum(Album album)
+        //{
+        //    Albums.Add(album);
+        //}
+        //public void AddTrack(Track track)
+        //{
+        //    Tracks.Add(track);
+        //}
     }
 }
