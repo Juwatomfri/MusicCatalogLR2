@@ -16,10 +16,10 @@ namespace Logic.Services
             _appDbContext = context;
         }
 
-        public void CreateAlbum(string name, Singer singer, List<Track> tracks)
+        public void CreateAlbum(string name, Singer singer)
         {
             var albumBuilder = new AlbumBuilder(name, singer);
-            tracks.ForEach(track => albumBuilder.AddTrack(track));
+            //tracks.ForEach(track => albumBuilder.AddTrack(track));
             _appDbContext.Albums.Add(albumBuilder.Build());
             _appDbContext.SaveChanges();
         }

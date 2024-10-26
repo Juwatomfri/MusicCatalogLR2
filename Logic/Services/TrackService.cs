@@ -15,15 +15,16 @@ namespace Logic.Services
             _appDbContext = context;
         }
 
-        public void CreateTrack(string name, Genre genre, Singer singer)
+        public void CreateTrack(string name, Genre genre, Singer singer, Album album)
         {
             var track = new Track()
             {
                 Name = name,
                 Genre = genre,
                 Singer = singer,
+                Album = album,
             };
-            _appDbContext.Singers.Add(singer);
+            _appDbContext.Tracks.Add(track);
             _appDbContext.SaveChanges();
         }
 

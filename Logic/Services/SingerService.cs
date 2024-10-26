@@ -17,12 +17,12 @@ namespace Logic.Services
             _appDbContext = context;
         }
 
-        public void CreateSinger(string name, Genre genre, List<Album> albums, List<Track> tracks)
+        public void CreateSinger(string name, Genre genre)
         {
             var singerBuilder = new SingerBuilder(name, genre);
-            tracks.ForEach(track => singerBuilder.AddTrack(track));
-            albums.ForEach(album => singerBuilder.AddAlbum(album));
-            
+            //tracks.ForEach(track => singerBuilder.AddTrack(track));
+            //albums.ForEach(album => singerBuilder.AddAlbum(album));
+
             _appDbContext.Singers.Add(singerBuilder.Build());
             _appDbContext.SaveChanges();
         }
