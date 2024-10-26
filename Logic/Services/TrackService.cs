@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Logic.Services
 {
-    public class Trackervice
+    public class TrackService:ISearchStrategy
     {
         private readonly AppDbContext _appDbContext;
-        public Trackervice(AppDbContext context)
+        public TrackService(AppDbContext context)
         {
             _appDbContext = context;
         }
@@ -34,7 +34,15 @@ namespace Logic.Services
 
         public List<Track> GetTracksByName(string name)
         {
-            return _appDbContext.Tracks.Where(a => a.Name.Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе");
+            return _appDbContext.Tracks.Where(a => a.Name.ToLower().Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе");
+        }
+
+        public List<object> Search(Catalog catalog, string query)
+        {
+            return catalog.Singers
+                .SelectMany(al => al.Tracks)
+                .Where(t => t.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .Cast<object>().ToList();
         }
     }
 }

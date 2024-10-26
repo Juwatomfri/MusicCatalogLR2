@@ -1,7 +1,8 @@
 ﻿using Entities;
 using Logic;
 using Logic.Builders;
-using SearchInterface;
+using Logic.Services;
+//using SearchInterface;
 using System;
 using System.Reflection;
 using System.Security.AccessControl;
@@ -25,6 +26,12 @@ namespace MusicCatalogLR2
     public partial class MainWindow : Window
     {
         private Catalog _catalog;
+        private static AppDbContext _appDbContext = new AppDbContext();
+        private SingerService _singerService = new SingerService(_appDbContext);
+        private AlbumService _albumService = new AlbumService(_appDbContext);
+        private GenreService _genreService = new GenreService(_appDbContext);
+        private TrackService _trackService = new TrackService(_appDbContext);
+        private CompilationService _compilationService = new CompilationService(_appDbContext);
 
         public MainWindow()
         {
@@ -37,37 +44,64 @@ namespace MusicCatalogLR2
             // Инициализация каталога и добавление тестовых данных
             _catalog = new Catalog();
 
-            Genre rock = new Genre("Rock");
-            Genre pop = new Genre("Pop");
 
-            var artistBuilder = new SingerBuilder("Artist1", rock);
-            var albumBuilder = new AlbumBuilder("Album1", new List<Singer>() { artistBuilder.Build() })
-                .AddSong(new Entities.Track("Song1", rock, new List<Singer>() { artistBuilder.Build() }))
-                .AddSong(new Entities.Track("Song2", rock, new List<Singer>() { artistBuilder.Build() }));
-            var artist = artistBuilder.AddAlbum(albumBuilder.Build()).Build();
+            List<string> genres = ["Rock", "Pop", "Country"];
+            genres.ForEach(_genreService.CreateGenre);
+            _singerService.CreateSinger("Deep Durple", _genreService.GetGenresByName("rock")[0], [], []);
 
-            _catalog.Singers.Add(artist);
+
         }
 
         private void OnSearchClick(object sender, RoutedEventArgs e)
         {
-            string query = SearchBox.Text;
+            string query = SearchBox.Text.ToLower();
             if (string.IsNullOrWhiteSpace(query)) return;
 
-            ISearchStrategy strategy = GetSearchStrategy();
-            if (strategy == null) return;
+            switch (SearchTypeSelector.Text)
+            {
+                case "Исполнители":
+                    {
+                        var results = _singerService.GetASingerByName(query);
+                        foreach (Singer singer in results)
+                        {
+                            ResultsList.Items.Add(singer.Name);
+                        }
+                    }
+                    break;
+                case "Альбомы":
+                    {
+                        var results = _albumService.GetAlbumsByName(query);
+                        foreach (Album album in results)
+                        {
+                            ResultsList.Items.Add(album.Name);
+                        }
+                    }
+                    break;
+                case "Треки":
+                    {
+                        var results = _trackService.GetTracksByName(query);
+                        foreach (Entities.Track track in results)
+                        {
+                            ResultsList.Items.Add(track.Name);
+                        }
+                    }
+                    break;
+            }
 
-            var results = _catalog.Search(query, strategy);
-            ResultsList.ItemsSource = results;
+            //ISearchStrategy strategy = GetSearchStrategy();
+            //if (strategy == null) return;
+
+            //var results = _catalog.Search(query, strategy);
+            
         }
 
         private ISearchStrategy GetSearchStrategy()
         {
             switch (SearchTypeSelector.SelectedIndex)
             {
-                case 0: return new SingerSearchStrategy();
-                case 1: return new AlbumSearchStrategy();
-                case 2: return new TrackSearchStrategy();
+                case 0: return _singerService;
+                case 1: return _albumService;
+                case 2: return _trackService;
                 default: return null;
             }
         }

@@ -33,7 +33,7 @@ namespace Logic.Services
 
         public List<Compilation> GetCompilationsByName(string name)
         {
-            return _appDbContext.Compilations.Where(a => a.Name.Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе");
+            return _appDbContext.Compilations.Where(a => a.Name.ToLower().Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе");
         }
     }
 }

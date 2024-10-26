@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Logic.Services
 {
-    public class AlbumService
+    public class AlbumService:ISearchStrategy
     {
         private readonly AppDbContext _appDbContext;
         public AlbumService(AppDbContext context)
@@ -31,7 +31,15 @@ namespace Logic.Services
 
         public List<Album> GetAlbumsByName(string name)
         {
-            return _appDbContext.Albums.Where(a => a.Name.Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе"); 
+            return _appDbContext.Albums.Where(a => a.Name.ToLower().Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе"); 
+        }
+
+        public List<object> Search(Catalog catalog, string query)
+        {
+            return catalog.Singers
+                .SelectMany(a => a.Albums)
+                .Where(al => al.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .Cast<object>().ToList();
         }
     }
 }

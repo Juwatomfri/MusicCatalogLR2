@@ -32,7 +32,7 @@ namespace Logic.Services
 
         public List<Genre> GetGenresByName(string name)
         {
-            return _appDbContext.Genres.Where(a => a.Name.Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе");
+            return _appDbContext.Genres.Where(a => a.Name.ToLower().Contains(name)).ToList() ?? throw new ArgumentException("Элементов с таким имененм нет в базе");
         }
     }
 }
